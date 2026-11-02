@@ -1,0 +1,27 @@
+# Proposed model: LoRA on q,v + cent tokens + gamelan instrument tokens.
+out_dir: runs/lora_12tet
+data_dir: data/synth
+seed: 0
+
+adapt:
+  base_model: medium        # start with small while debugging
+  use_cents: false
+  mode: lora                # lora | full | frozen (= new tokens only)
+  lora_rank: 16
+  lora_alpha: 32
+  lora_targets: [q, v]      # also possible: k, out, ffn1, ffn2
+  train_mel_proj: false
+
+batch_size: 8               # per step; effective batch = batch_size * grad_accum
+grad_accum: 2
+lr: 1.0e-4
+new_token_lr_mult: 5.0
+weight_decay: 0.0
+warmup: 500
+steps: 20000
+grad_checkpointing: true
+workers: 4
+log_every: 50
+eval_every: 1000
+val_batches: 50
+max_hours: 23.5             # stop before the 24-h job limit; re-run to resume

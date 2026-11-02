@@ -1,0 +1,10 @@
+{
+  "_comment": "Collapse instrument names to families for zero-shot scoring on Malay gamelan. Edit to match your annotation labels.",
+  "saron_demung": "saron", "saron_barung": "saron", "saron_peking": "saron",
+  "demung": "saron", "peking": "saron", "saron": "saron",
+  "bonang_barung": "bonang", "bonang_penerus": "bonang", "keromong": "bonang",
+  "gambang": "gambang",
+  "kenong": "kenong",
+  "kempul": "gong", "gong": "gong", "gong_agung": "gong", "gong_suwukan": "gong",
+  "slenthem": "slenthem", "gender": "gender", "kethuk": "kethuk"
+}
