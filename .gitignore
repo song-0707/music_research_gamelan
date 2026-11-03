@@ -24,3 +24,7 @@ venv/
 *.out
 *.synctex.gz
 *.toc
+
+# paper draft
+main_revised.tex
+main_revised.pdf
