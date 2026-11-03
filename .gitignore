@@ -29,3 +29,6 @@ venv/
 main_revised.tex
 main_revised.pdf
 run.py
+
+# status notes
+STATUS.md
