@@ -28,3 +28,4 @@ venv/
 # paper draft
 main_revised.tex
 main_revised.pdf
+run.py
