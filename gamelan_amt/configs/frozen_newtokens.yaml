@@ -23,5 +23,6 @@ grad_checkpointing: true
 workers: 4
 log_every: 50
 eval_every: 1000
+save_every: 200            # also checkpoint last/ this often (crash safety)
 val_batches: 50
 max_hours: 23.5             # stop before the 24-h job limit; re-run to resume

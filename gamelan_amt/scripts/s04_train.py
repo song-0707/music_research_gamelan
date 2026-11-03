@@ -4,12 +4,15 @@
 
 Resumable: re-running the same command continues from <out_dir>/last/.
 Stops cleanly before `max_hours` so a 24-h job never dies mid-step.
+Also saves <out_dir>/last/ every `save_every` steps, and when SIGTERM or
+SIGUSR1 arrives (scancel, preemption, or SLURM's --signal warning).
 """
 
 import argparse
 import csv
 import math
 import random
+import signal
 import time
 from pathlib import Path
 
@@ -111,9 +114,19 @@ def main():
                     "opt": opt.state_dict(), "step": step, "best": best},
                    d / "trainer.pt")
 
+    # On SIGTERM/SIGUSR1, finish the current step, save last/ and exit.
+    stop = {"sig": None}
+    def request_stop(signum, _frame):
+        stop["sig"] = signal.Signals(signum).name
+    for s_ in (signal.SIGTERM, signal.SIGUSR1):
+        signal.signal(s_, request_stop)
+
+    save_every = C.get("save_every", 200)
     lm.train()
     it = iter(train_dl)
-    while step < total_steps:
+
+    def train_step():
+        nonlocal it
         opt.zero_grad(set_to_none=True)
         loss_acc = 0.0
         for _ in range(accum):
@@ -131,7 +144,24 @@ def main():
         for g, b in zip(opt.param_groups, base_lrs):
             g["lr"] = b * f
         opt.step()
-        step += 1
+        return loss_acc, f
+
+    while step < total_steps:
+        try:
+            loss_acc, f = train_step()
+        except Exception:
+            # scancel also kills DataLoader workers, which can make the
+            # interrupted step fail. Weights only change at opt.step(),
+            # so the state at `step` is still consistent and safe to save.
+            if stop["sig"] is None:
+                raise
+        else:
+            step += 1
+        if stop["sig"] is not None:
+            print(f"received {stop['sig']} at step {step}; saving last/ and exiting "
+                  "(re-run to resume)", flush=True)
+            save("last")
+            break
 
         if step % C.get("log_every", 50) == 0:
             el = (time.time() - t_start) / 3600
@@ -144,6 +174,8 @@ def main():
             if vl < best:
                 best = vl
                 save("best")
+            save("last")
+        elif step % save_every == 0:
             save("last")
         if (time.time() - t_start) / 3600 > C.get("max_hours", 23.5):
             print("time budget reached; saving and exiting (re-run to resume)")

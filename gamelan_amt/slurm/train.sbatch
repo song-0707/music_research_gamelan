@@ -8,9 +8,11 @@
 #SBATCH --mem=16G
 #SBATCH --time=24:00:00
 #SBATCH --output=logs/%x-%j.out
+#SBATCH --signal=B:USR1@300    # warn training 5 min before the time limit so it saves
 
 set -euo pipefail
 mkdir -p logs
 source .venv/bin/activate
 nvidia-smi
-python scripts/s04_train.py --config "$1"
+# exec so python itself receives SIGUSR1 / SIGTERM (scancel) and saves last/
+exec python scripts/s04_train.py --config "$1"
